@@ -12,22 +12,24 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  List <Photos> getPhotosList = [];
+  List<GetData> getList = [];
 
-  Future<List<Photos>> getPhotos()async{
-    final response = await http.get(Uri.parse("https://jsonplaceholder.typicode.com/photos"));
+  Future<List<GetData>> getDataList ()async{
+    final response = await http.get(Uri.parse("https://jsonplaceholder.typicode.com/posts"));
 
     var data = jsonDecode(response.body.toString());
+
     if(response.statusCode == 200){
-      for(Map<String,dynamic> i in data){
-        Photos photos = Photos(title: i["title"], url: i["url"],id: i["id"]);
-        getPhotosList.add(photos);
+      for (Map <String,dynamic> i in data){
+        GetData getData = GetData(body: i["body"], id: i["id"], title: i["title"]);
+        getList.add(getData);
       }
-      return getPhotosList;
+      return getList;
     }else{
-      return getPhotosList;
+      return getList;
     }
   }
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -36,19 +38,23 @@ class _HomePageState extends State<HomePage> {
         children: [
           Expanded(
             child: FutureBuilder(
-              future: getPhotos(), 
-              builder: (context,snapshot){
-                return ListView.builder(
-                  itemCount: getPhotosList.length,
+              future: getDataList(), 
+              builder: (BuildContext context, AsyncSnapshot<List<GetData>> snapshot){
+                if(!snapshot.hasData){
+                  return Center(
+                    child: Text("Loading...."),
+                  );
+                }else{
+                 return ListView.builder(
+                  itemCount: getList.length,
                   itemBuilder: (context,index){
                   return ListTile(
-                    leading: Text(snapshot.data![index].id.toString()),
                     title: Text(snapshot.data![index].title.toString()),
-                    trailing: CircleAvatar(
-                      backgroundImage: NetworkImage(snapshot.data![index].url.toString()),
-                    ),
+                    leading: Text(snapshot.data![index].id.toString()),
+                    subtitle: Text(snapshot.data![index].body.toString()),
                   );
-                });
+                 });
+                }
               }),
           )
         ],
@@ -56,9 +62,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-class Photos{
-  String title,url;
+class GetData{
+  String title,body;
   int id;
-  Photos ({required this.title,required this.url,required this.id});
+  GetData ({required this.body,required this.id,required this.title});
 }
